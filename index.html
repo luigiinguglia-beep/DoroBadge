@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DoroBadge</title>
+  <style>
+  
+  .brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .brand-small {
+   margin-bottom: 20px;
+  }
+  .logo {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+  }
+  .brand h1,
+  .brand h2 {
+    margin: 0;
+  }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      margin: 0;
+      padding: 0;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      padding: 24px;
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin-top: 0;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #6b7280;
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      margin-top: 14px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    button.secondary {
+      background: #059669;
+    }
+
+    button.secondary:hover {
+      background: #047857;
+    }
+
+    button.logout {
+      background: #dc2626;
+    }
+
+    button.logout:hover {
+      background: #b91c1c;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .message {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      white-space: pre-line;
+    }
+
+    .success {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .info {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .user-box {
+      background: #f3f4f6;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #6b7280;
+      text-align: center;
+      margin-top: 16px;
+    }
+  </style>
+  <script src="[unpkg.com](https://unpkg.com/html5-qrcode)" type="text/javascript"></script>
+</head>
+<body>
+  <div class="container">
+    <div id="loginView">
+      <div class="brand">
+        <img src="DoroMaris_logo.png" alt="Logo azienda" class="logo">
+        <h1>DoroBadge</h1>
+      </div>
+      <div class="subtitle">Accesso collaboratori</div>
+
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Inserisci username">
+
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Inserisci password">
+
+      <button onclick="login()">Accedi</button>
+
+      <div id="loginMessage" class="message hidden"></div>
+    </div>
+
+    <div id="appView" class="hidden">
+      <div class="brand brand-small">
+        <img src="DoroMaris_logo.png" alt="Logo azienda" class="logo">
+        <h2>DoroBadge</h2>
+      </div>
+
+      <div class="user-box" id="userBox"></div>
+
+      <button onclick="timbratura('ENTRATA')">Timbra Entrata</button>
+      <button class="secondary" onclick="timbratura('USCITA')">Timbra Uscita</button>
+      <button onclick="timbraturaConQr('ENTRATA')">Timbra Entrata con QR</button>
+      <button class="secondary" onclick="timbraturaConQr('USCITA')">Timbra Uscita con QR</button>
+      <button class="logout" onclick="logout()">Esci</button>
+
+
+      <div id="appMessage" class="message hidden"></div>
+      <div id="qrSection" class="hidden" style="margin-top: 20px;">
+        <div id="reader" style="width: 100%;"></div>
+        <button id="stopQrButton" class="logout hidden" onclick="stopQrScanner()">Annulla scansione QR</button>
+      </div>
+      <div class="small">
+        La posizione GPS e' obbligatoria per ogni timbratura.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxIyR2ZeeTVnMwLvZ2_pZv7Mac7geHUTNTIfC-tHOyfnm4HMt2EmO2WztZdhT99oCJQcg/exec";
+
+    let currentUser = null;
+    let currentQrScanner = null;
+    let pendingBadgeData = null;
+
+
+    function showMessage(elementId, text, type) {
+      const el = document.getElementById(elementId);
+      el.className = `message ${type}`;
+      el.textContent = text;
+    }
+
+    function hideMessage(elementId) {
+      const el = document.getElementById(elementId);
+      el.className = 'message hidden';
+      el.textContent = '';
+    }
+
+    function login() {
+      hideMessage('loginMessage');
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!username || !password) {
+        showMessage('loginMessage', 'Inserisci username e password.', 'error');
+        return;
+      }
+
+      showMessage('loginMessage', 'Accesso in corso...', 'info');
+
+      fetch(BACKEND_URL, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify({
+          action: 'login',
+          username: username,
+          password: password
+        })
+      })
+      .then(async response => {
+        const text = await response.text();
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          throw new Error('Risposta non JSON: ' + text);
+        }
+      })
+      .then(data => {
+        if (data.success) {
+          currentUser = data.user;
+          localStorage.setItem('dorobadgeUser', JSON.stringify(currentUser));
+          showAppView();
+        } else {
+          showMessage('loginMessage', data.message || 'Login fallito.', 'error');
+        }
+      })
+      .catch(error => {
+        showMessage('loginMessage', 'Errore di collegamento al server.', 'error');
+        console.error(error);
+      });
+    }
+
+    function showAppView() {
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('appView').classList.remove('hidden');
+
+      document.getElementById('userBox').innerHTML = `
+        <strong>Utente:</strong> ${currentUser.nomeCompleto}<br>
+        <strong>Username:</strong> ${currentUser.username}<br>
+        <strong>ID:</strong> ${currentUser.idUtente}
+      `;
+
+      hideMessage('appMessage');
+    }
+
+    function logout() {
+      currentUser = null;
+      localStorage.removeItem('dorobadgeUser');
+
+      document.getElementById('appView').classList.add('hidden');
+      document.getElementById('loginView').classList.remove('hidden');
+
+      document.getElementById('password').value = '';
+      hideMessage('appMessage');
+      showMessage('loginMessage', 'Logout effettuato.', 'info');
+    }
+
+    function timbratura(tipoTimbratura) {
+      hideMessage('appMessage');
+
+      if (!currentUser) {
+        showMessage('appMessage', 'Utente non autenticato.', 'error');
+        return;
+      }
+
+      showMessage('appMessage', 'Acquisizione posizione GPS in corso...', 'info');
+
+      if (!navigator.geolocation) {
+        showMessage('appMessage', 'Geolocalizzazione non supportata dal dispositivo.', 'error');
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const latitudine = position.coords.latitude;
+          const longitudine = position.coords.longitude;
+          const accuratezza = position.coords.accuracy;
+          const dataOraClient = new Date().toISOString();
+          const userAgent = navigator.userAgent;
+
+          showMessage(
+            'appMessage',
+            `Posizione acquisita.\nInvio timbratura ${tipoTimbratura} in corso...`,
+            'info'
+          );
+
+          fetch(BACKEND_URL, {
+            method: 'POST',
+            redirect: 'follow',
+            headers: {
+              'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify({
+              action: 'saveBadge',
+              user: currentUser,
+              tipoTimbratura: tipoTimbratura,
+              modalita: 'NORMALE',
+              qrRichiesto: 'NO',
+              qrLetto: '',
+              dataOraClient: dataOraClient,
+              latitudine: latitudine,
+              longitudine: longitudine,
+              accuratezza: accuratezza,
+              userAgent: userAgent
+            })
+          })
+          .then(async response => {
+            const text = await response.text();
+            try {
+              return JSON.parse(text);
+            } catch (e) {
+              throw new Error('Risposta server non valida: ' + text);
+            }
+          })
+          .then(data => {
+            if (data.success) {
+              showMessage(
+                'appMessage',
+                `Timbratura ${tipoTimbratura} salvata correttamente.\nLat: ${latitudine}\nLon: ${longitudine}\nAccuratezza: ${accuratezza} metri`,
+                'success'
+              );
+            } else {
+              showMessage('appMessage', data.message || 'Errore salvataggio timbratura.', 'error');
+            }
+          })
+          .catch(error => {
+            showMessage('appMessage', 'Errore di collegamento durante il salvataggio.', 'error');
+            console.error(error);
+          });
+        },
+        function(error) {
+          let msg = 'Impossibile ottenere la posizione GPS.';
+
+          if (error.code === 1) msg = 'Permesso posizione negato.';
+          if (error.code === 2) msg = 'Posizione non disponibile.';
+          if (error.code === 3) msg = 'Timeout nella lettura della posizione.';
+
+          showMessage('appMessage', msg, 'error');
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
+        }
+      );
+    }
+function timbraturaConQr(tipoTimbratura) {
+  hideMessage('appMessage');
+  if (!currentUser) {
+    showMessage('appMessage', 'Utente non autenticato.', 'error');
+    return;
+  }
+  showMessage('appMessage', 'Acquisizione posizione GPS in corso prima della scansione QR...', 'info');
+  if (!navigator.geolocation) {
+    showMessage('appMessage', 'Geolocalizzazione non supportata dal dispositivo.', 'error');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    function(position) {
+      const latitudine = position.coords.latitude;
+      const longitudine = position.coords.longitude;
+      const accuratezza = position.coords.accuracy;
+      const dataOraClient = new Date().toISOString();
+      const userAgent = navigator.userAgent;
+      pendingBadgeData = {
+        user: currentUser,
+        tipoTimbratura: tipoTimbratura,
+        modalita: 'QR',
+        qrRichiesto: 'SI',
+        dataOraClient: dataOraClient,
+        latitudine: latitudine,
+        longitudine: longitudine,
+        accuratezza: accuratezza,
+        userAgent: userAgent
+      };
+      showMessage(
+        'appMessage',
+        `Posizione acquisita.\nLat: ${latitudine}\nLon: ${longitudine}\nAccuratezza: ${accuratezza} metri\nAvvio fotocamera per scansione QR...`,
+        'info'
+      );
+      startQrScanner();
+    },
+    function(error) {
+      let msg = 'Impossibile ottenere la posizione GPS.';
+      if (error.code === 1) msg = 'Permesso posizione negato.';
+      if (error.code === 2) msg = 'Posizione non disponibile.';
+      if (error.code === 3) msg = 'Timeout nella lettura della posizione.';
+      showMessage('appMessage', msg, 'error');
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0
+    }
+  );
+}
+function startQrScanner() {
+  document.getElementById('qrSection').classList.remove('hidden');
+  document.getElementById('stopQrButton').classList.remove('hidden');
+  if (currentQrScanner) {
+    stopQrScanner();
+  }
+  currentQrScanner = new Html5Qrcode("reader");
+  currentQrScanner.start(
+    { facingMode: "environment" },
+    {
+      fps: 10,
+      qrbox: 250
+    },
+    function(decodedText, decodedResult) {
+      handleQrRead(decodedText);
+    },
+    function(errorMessage) {
+      // ignoriamo gli errori continui di scansione frame-by-frame
+    }
+  ).catch(err => {
+    console.error('ERRORE AVVIO QR:', err);
+    showMessage('appMessage', 'Impossibile avviare la fotocamera per il QR.', 'error');
+    stopQrScanner();
+  });
+}
+function stopQrScanner() {
+  const qrSection = document.getElementById('qrSection');
+  const stopBtn = document.getElementById('stopQrButton');
+  stopBtn.classList.add('hidden');
+  if (currentQrScanner) {
+    currentQrScanner.stop()
+      .then(() => {
+        currentQrScanner.clear();
+        currentQrScanner = null;
+        qrSection.classList.add('hidden');
+        document.getElementById('reader').innerHTML = '';
+      })
+      .catch(err => {
+        console.error('ERRORE STOP QR:', err);
+        currentQrScanner = null;
+        qrSection.classList.add('hidden');
+        document.getElementById('reader').innerHTML = '';
+      });
+  } else {
+    qrSection.classList.add('hidden');
+    document.getElementById('reader').innerHTML = '';
+  }
+}
+function handleQrRead(qrText) {
+  showMessage('appMessage', `QR letto: ${qrText}\nVerifica in corso...`, 'info');
+  stopQrScanner();
+  fetch(BACKEND_URL, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8'
+    },
+    body: JSON.stringify({
+      action: 'checkQr',
+      codiceQr: qrText
+    })
+  })
+  .then(async response => {
+    const text = await response.text();
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error('Risposta server non valida: ' + text);
+    }
+  })
+  .then(data => {
+    if (!data.success || !data.qrValid) {
+      showMessage('appMessage', data.message || 'QR non valido.', 'error');
+      return;
+    }
+    showMessage('appMessage', `QR valido.\nSalvataggio timbratura in corso...`, 'info');
+    saveBadgeWithQr(qrText);
+  })
+  .catch(error => {
+    console.error('ERRORE CHECK QR:', error);
+    showMessage('appMessage', `Errore verifica QR.\nDettaglio: ${error.message}`, 'error');
+  });
+}
+function saveBadgeWithQr(qrText) {
+  if (!pendingBadgeData) {
+    showMessage('appMessage', 'Dati timbratura mancanti.', 'error');
+    return;
+  }
+  fetch(BACKEND_URL, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8'
+    },
+    body: JSON.stringify({
+      action: 'saveBadge',
+      user: pendingBadgeData.user,
+      tipoTimbratura: pendingBadgeData.tipoTimbratura,
+      modalita: 'QR',
+      qrRichiesto: 'SI',
+      qrLetto: qrText,
+      dataOraClient: pendingBadgeData.dataOraClient,
+      latitudine: pendingBadgeData.latitudine,
+      longitudine: pendingBadgeData.longitudine,
+      accuratezza: pendingBadgeData.accuratezza,
+      userAgent: pendingBadgeData.userAgent
+    })
+  })
+  .then(async response => {
+    const text = await response.text();
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error('Risposta server non valida: ' + text);
+    }
+  })
+  .then(data => {
+    if (data.success) {
+      showMessage(
+        'appMessage',
+        `Timbratura ${pendingBadgeData.tipoTimbratura} con QR salvata correttamente.\nQR: ${qrText}\nLat: ${pendingBadgeData.latitudine}\nLon: ${pendingBadgeData.longitudine}\nAccuratezza: ${pendingBadgeData.accuratezza} metri`,
+        'success'
+      );
+      pendingBadgeData = null;
+    } else {
+      showMessage('appMessage', data.message || 'Errore salvataggio timbratura con QR.', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('ERRORE SAVE BADGE QR:', error);
+    showMessage('appMessage', `Errore di salvataggio timbratura con QR.\nDettaglio: ${error.message}`, 'error');
+  });
+}
+
+  function stopQrScanner() {
+    const qrSection = document.getElementById('qrSection');
+    const stopBtn = document.getElementById('stopQrButton');
+
+    stopBtn.classList.add('hidden');
+
+    if (currentQrScanner) {
+      currentQrScanner.stop()
+       .then(() => {
+         currentQrScanner.clear();
+         currentQrScanner = null;
+         qrSection.classList.add('hidden');
+         document.getElementById('reader').innerHTML = '';
+       })
+       .catch(err => {
+          console.error('ERRORE STOP QR:', err);
+          currentQrScanner = null;
+          qrSection.classList.add('hidden');
+          document.getElementById('reader').innerHTML = '';
+        });
+   } else {
+     qrSection.classList.add('hidden');
+     document.getElementById('reader').innerHTML = '';
+   }
+  }
+
+  function handleQrRead(qrText) {
+   showMessage('appMessage', `QR letto: ${qrText}\nVerifica in corso...`, 'info');
+
+   stopQrScanner();
+
+    fetch(BACKEND_URL, {
+     method: 'POST',
+     redirect: 'follow',
+     headers: {
+       'Content-Type': 'text/plain;charset=utf-8'
+     },
+     body: JSON.stringify({
+       action: 'checkQr',
+       codiceQr: qrText
+     })
+    })
+   .then(async response => {
+     const text = await response.text();
+     try {
+       return JSON.parse(text);
+     } catch (e) {
+       throw new Error('Risposta server non valida: ' + text);
+     }
+   })
+   .then(data => {
+     if (!data.success || !data.qrValid) {
+       showMessage('appMessage', data.message || 'QR non valido.', 'error');
+       return;
+      }
+
+     showMessage('appMessage', `QR valido.\nSalvataggio timbratura in corso...`, 'info');
+
+     saveBadgeWithQr(qrText);
+   })
+   .catch(error => {
+     console.error('ERRORE CHECK QR:', error);
+     showMessage('appMessage', `Errore verifica QR.\nDettaglio: ${error.message}`, 'error');
+   });
+  }
+
+  function saveBadgeWithQr(qrText) {
+   if (!pendingBadgeData) {
+     showMessage('appMessage', 'Dati timbratura mancanti.', 'error');
+     return;
+   }
+
+   fetch(BACKEND_URL, {
+      method: 'POST',
+      redirect: 'follow',
+     headers: {
+       'Content-Type': 'text/plain;charset=utf-8'
+     },
+     body: JSON.stringify({
+       action: 'saveBadge',
+       user: pendingBadgeData.user,
+       tipoTimbratura: pendingBadgeData.tipoTimbratura,
+       modalita: 'QR',
+       qrRichiesto: 'SI',
+       qrLetto: qrText,
+        dataOraClient: pendingBadgeData.dataOraClient,
+        latitudine: pendingBadgeData.latitudine,
+        longitudine: pendingBadgeData.longitudine,
+        accuratezza: pendingBadgeData.accuratezza,
+       userAgent: pendingBadgeData.userAgent
+      })
+   })
+    .then(async response => {
+      const text = await response.text();
+      try {
+       return JSON.parse(text);
+     } catch (e) {
+       throw new Error('Risposta server non valida: ' + text);
+     }
+   })
+    .then(data => {
+      if (data.success) {
+        showMessage(
+         'appMessage',
+         `Timbratura ${pendingBadgeData.tipoTimbratura} con QR salvata correttamente.\nQR: ${qrText}\nLat: ${pendingBadgeData.latitudine}\nLon: ${pendingBadgeData.longitudine}\nAccuratezza: ${pendingBadgeData.accuratezza} metri`,
+         'success'
+        );
+        pendingBadgeData = null;
+     } else {
+       showMessage('appMessage', data.message || 'Errore salvataggio timbratura con QR.', 'error');
+     }
+   })
+    .catch(error => {
+      console.error('ERRORE SAVE BADGE QR:', error);
+      showMessage('appMessage', `Errore di salvataggio timbratura con QR.\nDettaglio: ${error.message}`, 'error');
+   });
+  }
+
+    function autoLoginIfPresent() {
+      const saved = localStorage.getItem('dorobadgeUser');
+      if (saved) {
+        try {
+          currentUser = JSON.parse(saved);
+          showAppView();
+        } catch (e) {
+          localStorage.removeItem('dorobadgeUser');
+        }
+      }
+    }
+
+    autoLoginIfPresent();
+  </script>
+</body>
+</html>
