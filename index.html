@@ -424,30 +424,60 @@ function timbraturaConQr(tipoTimbratura) {
     }
   );
 }
-function startQrScanner() {
-  document.getElementById('qrSection').classList.remove('hidden');
-  document.getElementById('stopQrButton').classList.remove('hidden');
-  if (currentQrScanner) {
+async function startQrScanner() {
+  const qrSection = document.getElementById('qrSection');
+  const stopBtn = document.getElementById('stopQrButton');
+  const readerEl = document.getElementById('reader');
+  qrSection.classList.remove('hidden');
+  stopBtn.classList.remove('hidden');
+  readerEl.innerHTML = '';
+  if (typeof Html5Qrcode === 'undefined') {
+    showMessage('appMessage', 'Libreria QR non caricata.', 'error');
+    console.error('Html5Qrcode non definita');
+    return;
+  }
+  try {
+    const cameras = await Html5Qrcode.getCameras();
+    console.log('CAMERE TROVATE:', cameras);
+    if (!cameras || cameras.length === 0) {
+      showMessage('appMessage', 'Nessuna fotocamera trovata sul dispositivo.', 'error');
+      return;
+    }
+    if (currentQrScanner) {
+      try {
+        await currentQrScanner.stop();
+        await currentQrScanner.clear();
+      } catch (e) {
+        console.warn('Scanner precedente non pulito:', e);
+      }
+      currentQrScanner = null;
+    }
+    currentQrScanner = new Html5Qrcode("reader");
+    showMessage('appMessage', 'Avvio fotocamera per scansione QR...', 'info');
+    await currentQrScanner.start(
+      { facingMode: "environment" },
+      {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0
+      },
+      function(decodedText, decodedResult) {
+        handleQrRead(decodedText);
+      },
+      function(errorMessage) {
+        // ignoriamo gli errori continui di riconoscimento frame
+      }
+    );
+    console.log('Scanner QR avviato correttamente');
+  } catch (err) {
+    console.error('ERRORE AVVIO QR:', err);
+    showMessage(
+      'appMessage',
+      `Impossibile avviare la fotocamera per il QR.\nDettaglio: ${err && err.message ? err.message : err}`,
+      'error'
+    );
     stopQrScanner();
   }
-  currentQrScanner = new Html5Qrcode("reader");
-  currentQrScanner.start(
-    { facingMode: "environment" },
-    {
-      fps: 10,
-      qrbox: 250
-    },
-    function(decodedText, decodedResult) {
-      handleQrRead(decodedText);
-    },
-    function(errorMessage) {
-      // ignoriamo gli errori continui di scansione frame-by-frame
-    }
-  ).catch(err => {
-    console.error('ERRORE AVVIO QR:', err);
-    showMessage('appMessage', 'Impossibile avviare la fotocamera per il QR.', 'error');
-    stopQrScanner();
-  });
 }
 function stopQrScanner() {
   const qrSection = document.getElementById('qrSection');
