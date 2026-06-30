@@ -210,7 +210,7 @@
       <button class="secondary badge-action" onclick="timbraturaConQr('USCITA')">Timbra Uscita con QR</button>
 
       <button class="logout" onclick="logout()">Esci</button>
-      <button class="utility" onclick="testCameraAvailability()">Test fotocamera</button>
+      
       
 
       <div id="appMessage" class="message hidden"></div>
@@ -338,6 +338,20 @@
       setButtonsDisabled(false);
     }
 
+    function forceLogoutWithMessage(message) {
+      currentUser = null;
+      pendingBadgeData = null;
+      localStorage.removeItem('dorobadgeUser');
+      localStorage.removeItem('dorobadgeSessionToken');
+      stopQrScannerSilently();
+      document.getElementById('appView').classList.add('hidden');
+      document.getElementById('loginView').classList.remove('hidden');
+      document.getElementById('password').value = '';
+      hideMessage('appMessage');
+      showMessage('loginMessage', message, 'error');
+      setButtonsDisabled(false);
+    }
+    
     function timbratura(tipoTimbratura) {
       hideMessage('appMessage');
 
@@ -402,23 +416,32 @@
           })
           .then(data => {
             console.log('RISPOSTA JSON SAVEBADGE:', data);
-
             if (data.success) {
               showMessage(
                 'appMessage',
                 `Timbratura ${tipoTimbratura} salvata correttamente.\nLat: ${latitudine}\nLon: ${longitudine}\nAccuratezza: ${accuratezza} metri`,
                 'success'
               );
-            } else {
-              showMessage(
-                'appMessage',
-                `Timbratura non salvata.\nMessaggio server: ${data.message || 'Errore sconosciuto'}`,
-                'error'
-              );
+              setButtonsDisabled(false);
+              return;
             }
-
+            if (
+              data.message === 'Sessione scaduta' ||
+              data.message === 'Sessione non valida' ||
+              data.message === 'Sessione mancante' ||
+              data.message === 'Sessione non attiva'
+            ) {
+              forceLogoutWithMessage('Sessione scaduta. Effettua di nuovo il login.');
+              return;
+            }
+            showMessage(
+              'appMessage',
+              `Timbratura non salvata.\nMessaggio server: ${data.message || 'Errore sconosciuto'}`,
+              'error'
+            );
             setButtonsDisabled(false);
           })
+
           .catch(error => {
             console.error('ERRORE SAVEBADGE:', error);
             showMessage(
@@ -694,24 +717,35 @@
           throw new Error('Risposta server non valida: ' + text);
         }
       })
+      
       .then(data => {
         if (data.success) {
           showMessage(
-            'appMessage',
-            `Timbratura ${pendingBadgeData.tipoTimbratura} con QR salvata correttamente.\nQR: ${qrText}\nLat: ${pendingBadgeData.latitudine}\nLon: ${pendingBadgeData.longitudine}\nAccuratezza: ${pendingBadgeData.accuratezza} metri`,
-            'success'
+          'appMessage',
+          `Timbratura ${pendingBadgeData.tipoTimbratura} con QR salvata correttamente.\nQR: ${qrText}\nLat: ${pendingBadgeData.latitudine}\nLon: ${pendingBadgeData.longitudine}\nAccuratezza: ${pendingBadgeData.accuratezza} metri`,
+          'success'
           );
           pendingBadgeData = null;
-        } else {
-          showMessage(
-            'appMessage',
-            data.message || 'Errore salvataggio timbratura con QR.',
-            'error'
-          );
+          setButtonsDisabled(false);
+          return;
         }
-
+        if (
+          data.message === 'Sessione scaduta' ||
+          data.message === 'Sessione non valida' ||
+          data.message === 'Sessione mancante' ||
+          data.message === 'Sessione non attiva'
+        ) {
+          forceLogoutWithMessage('Sessione scaduta. Effettua di nuovo il login.');
+          return;
+        }
+        showMessage(
+          'appMessage',
+          data.message || 'Errore salvataggio timbratura con QR.',
+          'error'
+        );
         setButtonsDisabled(false);
       })
+
       .catch(error => {
         console.error('ERRORE SAVE BADGE QR:', error);
         showMessage(
@@ -724,29 +758,7 @@
       });
     }
 
-    async function testCameraAvailability() {
-      try {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-          showMessage('appMessage', 'Il browser non supporta enumerateDevices.', 'error');
-          return;
-        }
-
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoInputs = devices.filter(d => d.kind === 'videoinput');
-
-        console.log('DISPOSITIVI VIDEO:', videoInputs);
-
-        showMessage(
-          'appMessage',
-          `Fotocamere rilevate: ${videoInputs.length}`,
-          videoInputs.length > 0 ? 'info' : 'error'
-        );
-      } catch (err) {
-        console.error('ERRORE TEST CAMERA:', err);
-        showMessage('appMessage', `Errore test fotocamera: ${err.message}`, 'error');
-      }
-    }
-
+    
     function autoLoginIfPresent() {
       const savedUser = localStorage.getItem('dorobadgeUser');
       const savedToken = localStorage.getItem('dorobadgeSessionToken');
