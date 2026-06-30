@@ -16,7 +16,7 @@
       "purpose": "maskable"
     }
   ],
-  "start_url": "./index.html",
+  "start_url": "https://github.com/luigiinguglia-beep/DoroBadge/blob/main/index.html",
   "scope": "./",
   "background_color": "#ffffff",
   "theme_color": "#007bff",
