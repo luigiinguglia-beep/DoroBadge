@@ -197,7 +197,7 @@
 
     <div id="appView" class="hidden">
       <div class="brand brand-small">
-        <img src="DoroMaris_logo.png" alt="Logo azienda" class="logo">
+        <img src="logo.png" alt="Logo azienda" class="logo">
         <h2>DoroBadge</h2>
       </div>
 
@@ -255,6 +255,10 @@
       el.textContent = '';
     }
 
+    function getSessionToken() {
+      return localStorage.getItem('dorobadgeSessionToken') || '';
+    }
+
     function login() {
       hideMessage('loginMessage');
 
@@ -292,6 +296,7 @@
         if (data.success) {
           currentUser = data.user;
           localStorage.setItem('dorobadgeUser', JSON.stringify(currentUser));
+          localStorage.setItem('dorobadgeSessionToken', data.sessionToken);
           showAppView();
         } else {
           showMessage('loginMessage', data.message || 'Login fallito.', 'error');
@@ -320,6 +325,7 @@
       currentUser = null;
       pendingBadgeData = null;
       localStorage.removeItem('dorobadgeUser');
+      localStorage.removeItem('dorobadgeSessionToken');
       stopQrScannerSilently();
 
       document.getElementById('appView').classList.add('hidden');
@@ -371,7 +377,7 @@
             },
             body: JSON.stringify({
               action: 'saveBadge',
-              user: currentUser,
+              sessionToken: getSessionToken(),
               tipoTimbratura: tipoTimbratura,
               modalita: 'NORMALE',
               qrRichiesto: 'NO',
@@ -469,7 +475,6 @@
           const userAgent = navigator.userAgent;
 
           pendingBadgeData = {
-            user: currentUser,
             tipoTimbratura: tipoTimbratura,
             modalita: 'QR',
             qrRichiesto: 'SI',
@@ -557,7 +562,6 @@
             handleQrRead(decodedText);
           },
           function(errorMessage) {
-            // ignorato
           }
         );
 
@@ -669,7 +673,7 @@
         },
         body: JSON.stringify({
           action: 'saveBadge',
-          user: pendingBadgeData.user,
+          sessionToken: getSessionToken(),
           tipoTimbratura: pendingBadgeData.tipoTimbratura,
           modalita: 'QR',
           qrRichiesto: 'SI',
@@ -743,14 +747,20 @@
     }
 
     function autoLoginIfPresent() {
-      const saved = localStorage.getItem('dorobadgeUser');
-      if (saved) {
+      const savedUser = localStorage.getItem('dorobadgeUser');
+      const savedToken = localStorage.getItem('dorobadgeSessionToken');
+
+      if (savedUser && savedToken) {
         try {
-          currentUser = JSON.parse(saved);
+          currentUser = JSON.parse(savedUser);
           showAppView();
         } catch (e) {
           localStorage.removeItem('dorobadgeUser');
+          localStorage.removeItem('dorobadgeSessionToken');
         }
+      } else {
+        localStorage.removeItem('dorobadgeUser');
+        localStorage.removeItem('dorobadgeSessionToken');
       }
     }
 
