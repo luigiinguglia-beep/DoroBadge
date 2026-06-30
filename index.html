@@ -25,25 +25,40 @@
 
     .brand {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 14px;
+      gap: 10px;
       margin-bottom: 16px;
     }
 
-    .brand-small {
-      margin-bottom: 20px;
+    .brand-login {
+      margin-bottom: 18px;
     }
-
+    
+    .brand-app {
+      margin-bottom: 24px;
+    }
     .logo {
       width: 96px;
       height: 96px;
       object-fit: contain;
     }
-
     .brand h1,
     .brand h2 {
       margin: 0;
+      text-align: center;
+    }
+
+    .title-login {
+      font-size: 32px;
+      font-weight: 700;
+      color: #1f2937;
+    }
+    .title-app {
+      font-size: 42px;
+      font-weight: 800;
+      color: #111827;
     }
 
     h1, h2 {
@@ -181,9 +196,9 @@
 <body>
   <div class="container">
     <div id="loginView">
-      <div class="brand">
+      <div class="brandbrand-login">
         <img src="DoroMaris_logo.png" alt="Logo azienda" class="logo">
-        <h1>DoroBadge</h1>
+        <h1>class="title-login">DoroBadge</h1>
       </div>
 
       <div class="subtitle">Accesso collaboratori</div>
@@ -200,9 +215,9 @@
     </div>
 
     <div id="appView" class="hidden">
-      <div class="brand brand-small">
+      <div class="brandbrand-app">
         <img src="DoroMaris_logo.png" alt="Logo azienda" class="logo">
-        <h2>DoroBadge</h2>
+        <h2 class="title-app">DoroBadge</h2>
       </div>
 
       <div class="user-box" id="userBox"></div>
