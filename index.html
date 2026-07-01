@@ -213,6 +213,14 @@
     #qrSection {
       margin-top: 20px;
     }
+
+    .show-password-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      font-weight: normal;
+}
   </style>
 
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -236,6 +244,10 @@
 
       <label for="password">Password</label>
       <input type="password" id="password" placeholder="Inserisci password">
+      <label class="show-password-label">
+        <input type="checkbox" onchange="togglePasswordCheckbox(this)">
+        Mostra password
+      </label>
 
       <button onclick="login()">Accedi</button>
 
@@ -298,6 +310,11 @@
       const el = document.getElementById(elementId);
       el.className = 'message hidden';
       el.textContent = '';
+    }
+
+    function togglePasswordCheckbox(checkbox) {
+      const passwordInput = document.getElementById('password');
+      passwordInput.type = checkbox.checked ? 'text' : 'password';
     }
 
     function getSessionToken() {
