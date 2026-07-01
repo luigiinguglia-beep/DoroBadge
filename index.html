@@ -103,30 +103,56 @@
       cursor: pointer;
     }
 
-    button:hover {
+    .btn-entrata {
+      background: #2563eb;
+    }
+    .btn-entrata:hover {
       background: #1d4ed8;
     }
-
-    button.secondary {
+    .btn-uscita {
       background: #059669;
     }
-
-    button.secondary:hover {
+    .btn-uscita:hover {
       background: #047857;
     }
-
-    button.logout {
+    .btn-entrata-qr {
+      background: #7c3aed;
+    }
+    .btn-entrata-qr:hover {
+      background: #6d28d9;
+    }
+    .btn-uscita-qr {
+      background: #ea580c;
+    }
+    .btn-uscita-qr:hover {
+      background: #c2410c;
+    }
+    .btn-logout {
       background: #dc2626;
     }
-
-    button.logout:hover {
+    .btn-logout:hover {
       background: #b91c1c;
     }
 
+    <!--i button di sotto non funzionano ma li lascio per tenere conto di quanto fatto-->
+    button:hover {
+      background: #1d4ed8;
+    }
+    button.secondary {
+      background: #059669;
+    }
+    button.secondary:hover {
+      background: #047857;
+    }
+    button.logout {
+      background: #dc2626;
+    }
+    button.logout:hover {
+      background: #b91c1c;
+    }
     button.utility {
       background: #6b7280;
     }
-
     button.utility:hover {
       background: #4b5563;
     }
@@ -224,14 +250,11 @@
 
       <div class="user-box" id="userBox"></div>
 
-      <button class="badge-action" onclick="timbratura('ENTRATA')">Timbra Entrata</button>
-      <button class="secondary badge-action" onclick="timbratura('USCITA')">Timbra Uscita</button>
-
-      <button class="badge-action" onclick="timbraturaConQr('ENTRATA')">Timbra Entrata con QR</button>
-      <button class="secondary badge-action" onclick="timbraturaConQr('USCITA')">Timbra Uscita con QR</button>
-
-      <button class="logout" onclick="logout()">Esci</button>
-      
+      <button class="badge-action btn-entrata" onclick="timbratura('ENTRATA')">Timbra Entrata</button>
+      <button class="badge-action btn-uscita" onclick="timbratura('USCITA')">Timbra Uscita</button>
+      <button class="badge-action btn-entrata-qr" onclick="timbraturaConQr('ENTRATA')">Timbra Entrata con QR</button>
+      <button class="badge-action btn-uscita-qr" onclick="timbraturaConQr('USCITA')">Timbra Uscita con QR</button>
+      <button class="btn-logout" onclick="logout()">Esci</button>
       
 
       <div id="appMessage" class="message hidden"></div>
