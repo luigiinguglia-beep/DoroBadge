@@ -214,16 +214,24 @@
       margin-top: 20px;
     }
 
-    .show-password-label {
+    .show-password-row {
       display: flex;
-      align-items: center;
-      gap: 0px;
+      justify-content: center;
       margin-top: 10px;
+    }
+    .show-password-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
       font-weight: normal;
+      white-space: nowrap;
     }
     .show-password-label input[type="checkbox"] {
-      margin: 0 3px 0 0;
+      margin: 0;
+      width: auto;
+      flex: 0 0 auto;
     }
+
   </style>
 
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -247,10 +255,12 @@
 
       <label for="password">Password</label>
       <input type="password" id="password" placeholder="Inserisci password">
-      <label class="show-password-label">
-        <input type="checkbox" onchange="togglePasswordCheckbox(this)">
-        Mostra password
-      </label>
+      <div class="show-password-row">
+        <label class="show-password-label">
+          <input type="checkbox" onchange="togglePasswordCheckbox(this)">
+          <span>Mostra password</span>
+        </label>
+      </div>
 
       <button onclick="login()">Accedi</button>
 
