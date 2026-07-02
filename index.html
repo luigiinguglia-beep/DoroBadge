@@ -233,6 +233,26 @@
       flex: 0 0 auto;
     }
 
+    .note-box {
+      margin-top: 20px;
+    }
+    .note-box label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+    }
+    .note-box textarea {
+      width: 100%;
+      min-height: 90px;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      box-sizing: border-box;
+      font-size: 15px;
+      font-family: Arial, sans-serif;
+      resize: vertical;
+    }
+
   </style>
 
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -280,6 +300,10 @@
       <button class="badge-action btn-uscita" onclick="timbratura('USCITA')">Timbra Uscita</button>
       <button class="badge-action btn-entrata-qr" onclick="timbraturaConQr('ENTRATA')">Timbra Entrata con QR</button>
       <button class="badge-action btn-uscita-qr" onclick="timbraturaConQr('USCITA')">Timbra Uscita con QR</button>
+      <div class="note-box">
+        <label for="segnalazione">Segnalazioni</label>
+        <textarea id="segnalazione" placeholder="Scrivi qui eventuali note, ad esempio: No pranzo, trasferta..."></textarea>
+      </div>
       <button class="btn-logout" onclick="logout()">Esci</button>
       
 
@@ -335,6 +359,17 @@
       return localStorage.getItem('dorobadgeSessionToken') || '';
     }
 
+    function getSegnalazione() {
+      const el = document.getElementById('segnalazione');
+      return el ? el.value.trim() : '';
+    }
+    function clearSegnalazione() {
+      const el = document.getElementById('segnalazione');
+      if (el) {
+        el.value = '';
+      }
+    }
+    
     function login() {
       hideMessage('loginMessage');
 
@@ -472,6 +507,7 @@
               modalita: 'NORMALE',
               qrRichiesto: 'NO',
               qrLetto: '',
+              segnalazione: getSegnalazione(),
               dataOraClient: dataOraClient,
               latitudine: latitudine,
               longitudine: longitudine,
@@ -492,6 +528,7 @@
           .then(data => {
             console.log('RISPOSTA JSON SAVEBADGE:', data);
             if (data.success) {
+              clearSegnalazione();
               showMessage(
                 'appMessage',
                 `Timbratura ${tipoTimbratura} salvata correttamente.\nLat: ${latitudine}\nLon: ${longitudine}\nAccuratezza: ${accuratezza} metri`,
@@ -577,6 +614,7 @@
             tipoTimbratura: tipoTimbratura,
             modalita: 'QR',
             qrRichiesto: 'SI',
+            segnalazione: getSegnalazione(),
             dataOraClient: dataOraClient,
             latitudine: latitudine,
             longitudine: longitudine,
@@ -777,6 +815,7 @@
           modalita: 'QR',
           qrRichiesto: 'SI',
           qrLetto: qrText,
+          segnalazione: pendingBadgeData.segnalazione,
           dataOraClient: pendingBadgeData.dataOraClient,
           latitudine: pendingBadgeData.latitudine,
           longitudine: pendingBadgeData.longitudine,
@@ -795,6 +834,7 @@
       
       .then(data => {
         if (data.success) {
+          clearSegnalazione();
           showMessage(
           'appMessage',
           `Timbratura ${pendingBadgeData.tipoTimbratura} con QR salvata correttamente.\nQR: ${qrText}\nLat: ${pendingBadgeData.latitudine}\nLon: ${pendingBadgeData.longitudine}\nAccuratezza: ${pendingBadgeData.accuratezza} metri`,
