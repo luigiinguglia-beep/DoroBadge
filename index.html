@@ -814,13 +814,11 @@
       readerEl.innerHTML = '';
 
       setTimeout(() => {
-        if (stopBtn) {
-          stopBtn.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
-        }
-      }, 400);
+        qrSection.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 200);
       
       if (typeof Html5Qrcode === 'undefined') {
         showMessage('appMessage', 'Libreria QR non caricata.', 'error');
