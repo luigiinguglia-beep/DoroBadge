@@ -813,12 +813,7 @@
       stopBtn.classList.remove('hidden');
       readerEl.innerHTML = '';
 
-      setTimeout(() => {
-        qrSection.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
-      }, 200);
+      
       
       if (typeof Html5Qrcode === 'undefined') {
         showMessage('appMessage', 'Libreria QR non caricata.', 'error');
@@ -864,6 +859,13 @@
           function(errorMessage) {
           }
         );
+
+        setTimeout(() => {
+          qrSection.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+        }, 200);
 
         console.log('Scanner QR avviato correttamente');
       } catch (err) {
