@@ -814,10 +814,12 @@
       readerEl.innerHTML = '';
 
       setTimeout(() => {
-        stopBtn.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
+        if (stopBtn) {
+          stopBtn.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
       }, 200);
       
       if (typeof Html5Qrcode === 'undefined') {
