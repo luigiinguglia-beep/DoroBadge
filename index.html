@@ -1039,20 +1039,25 @@
     }
     
     function autoLoginIfPresent() {
-      const savedUser = localStorage.getItem('dorobadgeUser');
-      const savedToken = localStorage.getItem('dorobadgeSessionToken');
-
-      if (savedUser && savedToken) {
-        try {
-          currentUser = JSON.parse(savedUser);
-          showAppView();
-        } catch (e) {
+      try {
+        const savedUser = localStorage.getItem('dorobadgeUser');
+        const savedToken = localStorage.getItem('dorobadgeSessionToken');
+    
+        if (savedUser && savedToken) {
+          try {
+            currentUser = JSON.parse(savedUser);
+            showAppView();
+          } catch (e) {
+            localStorage.removeItem('dorobadgeUser');
+            localStorage.removeItem('dorobadgeSessionToken');
+          }
+        } else {
           localStorage.removeItem('dorobadgeUser');
           localStorage.removeItem('dorobadgeSessionToken');
         }
-      } else {
-        localStorage.removeItem('dorobadgeUser');
-        localStorage.removeItem('dorobadgeSessionToken');
+      } catch (e) {
+        console.error('Errore accesso localStorage:', e);
+        // Non fare nulla: l'utente vedrà semplicemente la schermata di login
       }
     }
 
