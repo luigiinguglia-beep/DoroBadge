@@ -727,10 +727,22 @@
 
           if (error.code === 1) {
             const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-            const istruzioni = isIOS
-              ? 'Vai su Impostazioni → Safari → Posizione → scegli "Consenti". Se non basta, controlla anche Impostazioni → Privacy e sicurezza → Localizzazione → Safari.'
-              : 'Tocca il lucchetto (o l\'icona "i") accanto all\'indirizzo del sito in alto → Autorizzazioni sito → Posizione → Consenti.';
+            const isAndroid = /Android/.test(navigator.userAgent);
+            const isFirefox = /Firefox/.test(navigator.userAgent);
+            const isEdge = /Edg/.test(navigator.userAgent);
 
+            let istruzioni;
+            if (isIOS) {
+              istruzioni = 'Vai su Impostazioni → Safari → Posizione → scegli "Consenti". Se non basta, controlla anche Impostazioni → Privacy e sicurezza → Localizzazione → Safari.';
+            } else if (isAndroid) {
+              istruzioni = 'Tocca il lucchetto (o l\'icona "i") accanto all\'indirizzo del sito in alto → Autorizzazioni sito → Posizione → Consenti.';
+            } else if (isFirefox) {
+              istruzioni = 'Clicca sull\'icona del lucchetto accanto all\'indirizzo del sito → rimuovi il blocco sulla Posizione, oppure vai su Impostazioni di Firefox → Privacy e sicurezza → Permessi → Posizione → Impostazioni → rimuovi il sito dai bloccati.';
+            } else if (isEdge) {
+              istruzioni = 'Clicca sull\'icona del lucchetto accanto all\'indirizzo del sito → Autorizzazioni per questo sito → Posizione → Consenti. In alternativa vai su Impostazioni di Edge → Cookie e autorizzazioni sito → Posizione.';
+            } else {
+              istruzioni = 'Clicca sull\'icona del lucchetto accanto all\'indirizzo del sito in alto → Autorizzazioni sito (o Impostazioni sito) → Posizione → Consenti.';
+            }
             msg = 'Permesso di localizzazione negato.\n\n' + istruzioni + '\n\nPoi ricarica la pagina e riprova.';
           }
           if (error.code === 2) msg = 'Posizione non disponibile.';
@@ -800,10 +812,22 @@
 
           if (error.code === 1) {
             const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-            const istruzioni = isIOS
-              ? 'Vai su Impostazioni → Safari → Posizione → scegli "Consenti". Se non basta, controlla anche Impostazioni → Privacy e sicurezza → Localizzazione → Safari.'
-              : 'Tocca il lucchetto (o l\'icona "i") accanto all\'indirizzo del sito in alto → Autorizzazioni sito → Posizione → Consenti.';
+            const isAndroid = /Android/.test(navigator.userAgent);
+            const isFirefox = /Firefox/.test(navigator.userAgent);
+            const isEdge = /Edg/.test(navigator.userAgent);
 
+            let istruzioni;
+            if (isIOS) {
+              istruzioni = 'Vai su Impostazioni → Safari → Posizione → scegli "Consenti". Se non basta, controlla anche Impostazioni → Privacy e sicurezza → Localizzazione → Safari.';
+            } else if (isAndroid) {
+              istruzioni = 'Tocca il lucchetto (o l\'icona "i") accanto all\'indirizzo del sito in alto → Autorizzazioni sito → Posizione → Consenti.';
+            } else if (isFirefox) {
+              istruzioni = 'Clicca sull\'icona del lucchetto accanto all\'indirizzo del sito → rimuovi il blocco sulla Posizione, oppure vai su Impostazioni di Firefox → Privacy e sicurezza → Permessi → Posizione → Impostazioni → rimuovi il sito dai bloccati.';
+            } else if (isEdge) {
+              istruzioni = 'Clicca sull\'icona del lucchetto accanto all\'indirizzo del sito → Autorizzazioni per questo sito → Posizione → Consenti. In alternativa vai su Impostazioni di Edge → Cookie e autorizzazioni sito → Posizione.';
+            } else {
+              istruzioni = 'Clicca sull\'icona del lucchetto accanto all\'indirizzo del sito in alto → Autorizzazioni sito (o Impostazioni sito) → Posizione → Consenti.';
+            }
             msg = 'Permesso di localizzazione negato.\n\n' + istruzioni + '\n\nPoi ricarica la pagina e riprova.';
           }
           if (error.code === 2) msg = 'Posizione non disponibile. Verifica che il GPS del telefono sia attivo.';
